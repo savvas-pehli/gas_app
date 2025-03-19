@@ -5,8 +5,8 @@ import psycopg2
 import datetime as dt
 from itertools import chain
 import altair as alt
-import plotly.express as px
 import plotly.graph_objects as go
+st.write('Db',st.secrets['username'])
 st.set_page_config(layout="wide")
 #prefecture_codes are the prefectures and their coresponding ids
 @st.cache_data
@@ -44,7 +44,18 @@ def get_region_dict():
 prefecture_codenames = get_prefecture_codenames()
 region_names_dict = get_region_names_dict()
 region_dict = get_region_dict()
-
+CEM_suburbs={'THESSALONIKI CENTER':['AGIAS_SOFIAS','ARISTOTLE_UNIVERSITY_THESSALONIKI'],'WEST THESSALONIKI':['KORDELIO','NEOQWROUDA','SINDOS'],
+             'EAST THESSALONIKI':['KALAMARIA'],'NORTH THESSALONIKI':['PANORAMA']}
+ATT_suburbs={'ATHENIAN CENTRAL SECTOR':['ATHENS','GALATSI','ZWGRAFOU','GOUDH','PATHSIWN'],
+             'ATHENIAN NORTH SECTOR':['AGIA_PARASKEUH','LUKOBRUSH','MAROUSI',' THRAKOMAKEDONES'],
+             'ATHENIAN WEST SECTOR':['PERISTERI','LIOSIA'],'ATHENIAN SOUTH SECTOR':['NEA_SMURNH'],'WEST ATTICAN SECTOR':['ELEUSINA'],
+             'PIREUS PREFECTURE':['PEIRAIAS']}
+suburbs={'THESSALONIKI CENTER':['AGIAS_SOFIAS','ARISTOTLE_UNIVERSITY_THESSALONIKI'],'WEST THESSALONIKI':['KORDELIO','NEOQWROUDA','SINDOS'],
+             'EAST THESSALONIKI':['KALAMARIA'],'NORTH THESSALONIKI':['PANORAMA'],
+             'ATHENIAN CENTRAL SECTOR':['ATHENS','GALATSI','ZWGRAFOU','GOUDH','PATHSIWN'],
+             'ATHENIAN NORTH SECTOR':['AGIA_PARASKEUH','LUKOBRUSH','MAROUSI',' THRAKOMAKEDONES'],
+             'ATHENIAN WEST SECTOR':['PERISTERI','LIOSIA'],'ATHENIAN SOUTH SECTOR':['NEA_SMURNH'],'WEST ATTICAN SECTOR':['ELEUSINA'],
+             'PIREUS PREFECTURE':['PEIRAIAS']}
 @st.cache_data
 def has_stepsize_one(it):
     return all(x2 - x1 == 1 for x1, x2 in zip(it[:-1], it[1:]))
