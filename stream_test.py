@@ -6,7 +6,7 @@ import datetime as dt
 from itertools import chain
 import altair as alt
 import plotly.graph_objects as go
-st.write('Db',st.secrets['username'])
+
 st.set_page_config(layout="wide")
 #prefecture_codes are the prefectures and their coresponding ids
 @st.cache_data
