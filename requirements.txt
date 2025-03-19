@@ -1,0 +1,11 @@
+ streamlit
+ pandas
+ numpy
+ os
+ psycopg2
+ datetime 
+ itertools 
+ altair 
+plotly.express
+plotly.graph_objects
+geopandas 
