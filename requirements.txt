@@ -87,7 +87,7 @@ nbformat==5.10.4
 nbsphinx==0.9.7
 nest-asyncio==1.6.0
 numexpr==2.10.1
-numpy==2.2.3
+numpy==1.85.9
 packaging==24.1
 pandas==2.2.2
 pandocfilters==1.5.1
