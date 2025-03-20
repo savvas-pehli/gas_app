@@ -24,7 +24,7 @@ def get_prefecture_codenames():
 @st.cache_data
 def get_region_names_dict():
     return{'Eastern macedonia thrace':'EMT','West macedonia':'WEM','West greece':'WEG',
-                  'Epirus':'EPR','Thessaly':'THL','Crete':'CRE','Central greece':'CEG','Central macedonia':'CEM','Attica and voiotia':'ATT',
+                  'Epirus':'EPR','Thessaly':'THL','Crete':'CRE','Central greece':'CEG','Attica and voiotia':'ATT',
                   'Thessaloniki':'THS'}
 #region_dictionray is the one that gives us which prefecture codes each region code contains
 @st.cache_data
@@ -36,7 +36,7 @@ def get_region_dict():
             'THL':['VOII','LAR'],
             'CRE':['CHA','AKO','VOU','HER','FIN'],
             'CEG':['AMF','KAR','LAM','LEI','HAL'],
-            'CEM':['AGS','APT','KAL','KOD','NEO','PAO','SIN'],
+            #'CEM':['AGS','APT','KAL','KOD','NEO','PAO','SIN'],
             'ATT':['AGP', 'ALI', 'ATH', 'ELE', 'GAL', 'GEO', 'GOU', 'KOR', 'LIO', 'LYK',
                    'MAR', 'SMY', 'OIN', 'PAT', 'BIO', 'PER', 'THR', 'PAN','ZWG','PIR'],
             'THS':['AGS','APT','KOD','NEO','SIN','KAL','PAO']}
@@ -274,7 +274,7 @@ class User_selection:
 
         # Step 3: Update valid columns for user selection
 #        self.valid_column_for_suburbs=valid_columns
-        self.cols = st.sidebar.multiselect(label="Select column(s)", options=common_columns)
+        self.cols = st.sidebar.multiselect(label="Select available air pollutant", options=common_columns)
            
 
         return
@@ -312,9 +312,9 @@ class User_selection:
                         
                         
                         #this is the part where we check which are the null value by goupring by per year
-                        null_dif=conn.query(null_query,ttl='10m')
-                        null_dif['Date']=pd.to_datetime(null_dif['Date'])
-                        self.null_dataframes[prefecture_name]=null_dif
+                        #null_dif=conn.query(null_query,ttl='10m')
+                        #null_dif['Date']=pd.to_datetime(null_dif['Date'])
+                        #self.null_dataframes[prefecture_name]=null_dif
                 
                 
                 #self.keystone=st.selectbox('Choise the location you want to see the dataframe',options=self.dataframes.keys())
@@ -373,10 +373,10 @@ class User_selection:
         for location, agg_data in self.agg_dataframe.items():
             for idx,col in enumerate(self.cols):
                 fig.add_trace(
-                    go.Scatter(
+                    go.Bar(
                         x=agg_data.index,
                         y=agg_data[col],
-                        mode="lines",
+                        #mode="lines",
                         name=f"{location} - {col}",
                         yaxis="y" if idx == 0 else "y2"
                     )
@@ -388,6 +388,7 @@ class User_selection:
                 xaxis_title=self.timeframe,
                 yaxis_title=self.cols[0],  # Update Y-axis title to the selected gas
                 legend_title="Location",
+                barmode='group'
             )
         elif dual_columns:
             # Two columns selected
@@ -401,6 +402,7 @@ class User_selection:
                     side="right"
                 ),
                 legend_title="Location - Gas",
+                barmode='group'
             ) 
 
         st.plotly_chart(fig, use_container_width=True)
@@ -417,18 +419,17 @@ class User_selection:
         days =['Monday','Tuesday','Wednesday','Thursday','Firday','Saturday','Sunday']
         month_map = {month: index + 1 for index, month in enumerate(months)}
         days_map={day: index + 1 for index, day in enumerate(days)}
-        month_slider_values = st.sidebar.select_slider('Select a month range',options=months,value=("January", "December") 
+        month_slider_values = st.sidebar.select_slider(label=' ',options=months,value=("January", "December"),help='Here you can set the range \n of months you would like to apply to the data') 
                                          # Default to the full range of months
-        )
-        day_slider_values=st.sidebar.select_slider("Select days range (for just one day get both sides of slider at the day you want)",
-                                                   options=days,value=('Monday','Sunday'))
+
+        day_slider_values=st.sidebar.select_slider(" ",options=days,value=('Monday','Sunday'),help='Select days range (for just one day get both sides of slider at the day you want)')
         # Capture the start and end month names from the slider
         #st.sidebar.select_slider('Choose avalable years',options=list(conn.query(region_selector.generate_dynamic_sql())))
         year_options,true_step=region_selector.common_year_selection(conn)
         
         #Bazoume edo to eidos tou aggregation katho kai episi os pros ti tha kanoume omadopoihsh
-        self.method=st.sidebar.selectbox('Choose aggregation method:',['Mean','Median',])
-        self.timeframe=st.sidebar.selectbox('Choose timeframe for aggregation:',['Year','Month','Day','Hour'])
+        self.method=st.sidebar.selectbox(' ',['Mean','Median',],help="Choose aggregation method")
+        self.timeframe=st.sidebar.selectbox(' ',['Year','Month','Day','Hour'],help="Choose timeframe for aggregation")
         
         #Here we have the year option with three options the frist is when we have one year only the second is if we have continuous 
         #yeas and the third is when we have not continuous years
@@ -438,9 +439,8 @@ class User_selection:
             self.year_list=chosen_years
         else:
             if true_step:
-                self.year_list=st.sidebar.slider(label="Select years range (for just one year get both sides of slider at the year you want)",
-                                              min_value=int(year_options['year'].iloc[0]),max_value=int(year_options['year'].iloc[-1]),
-                                              value=(int(year_options['year'].iloc[0]), int(year_options['year'].iloc[-1])))
+                self.year_list=st.sidebar.slider(label=" ", min_value=int(year_options['year'].iloc[0]),max_value=int(year_options['year'].iloc[-1]),
+                                              value=(int(year_options['year'].iloc[0]), int(year_options['year'].iloc[-1])),help="Select years range (for just one year get both sides of slider at the year you want)")
                 self.year_list=list(range(self.year_list[0], self.year_list[-1]+1))
                 self.year_list = ', '.join(map(str, self.year_list))
             else:
@@ -461,13 +461,14 @@ class User_selection:
         return None 
 
 
-#conn = st.connection("postgresql",type="sql",
-#                    url=f"postgresql://{st.secrets['connections.postgresql']['username']}:{st.secrets['connections.postgresql']['password']}@{st.secrets['connections.postgresql']['host']}:{st.secrets['connections.postgresql']['port']}/{st.secrets['connections.postgresql']['database']}")
-conn = st.connection("neon",type="sql")
+conn = st.connection("postgresql",type="sql",
+                    url=f"postgresql://{st.secrets['connections.postgresql']['username']}:{st.secrets['connections.postgresql']['password']}@{st.secrets['connections.postgresql']['host']}:{st.secrets['connections.postgresql']['port']}/{st.secrets['connections.postgresql']['database']}")
+
+#conn = st.connection("neon",type="sql")
 region_selector= User_selection('selection_1', region_names_dict, region_dict,prefecture_codenames,suburbs)
 
 st.title("GAS APP")
-
+st.sidebar.title('Time and gas filters')
 
 
 
@@ -488,7 +489,7 @@ if is_query_complete(region_selector.prefecture_name,region_selector.year_list,r
             region_selector.dynamic_groupby_aggregation()
             #region_selector.null_graphs()
      else:
-        st.info('Please select at least one 1 column')
+        st.info('Please select at least one 1 air pollutant')
 
 
 
