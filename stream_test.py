@@ -95,6 +95,7 @@ def corresponding_key(val, dictionary):
             return 'No prefectures'  
 
 
+
 class User_selection:
     
     def __init__(self, identifier, region_names_dict, region_dict,prefecture_codenames,suburbs):
@@ -274,7 +275,8 @@ class User_selection:
 
         # Step 3: Update valid columns for user selection
 #        self.valid_column_for_suburbs=valid_columns
-        self.cols = st.sidebar.multiselect(label="Select available air pollutant", options=common_columns)
+        self.cols = st.sidebar.multiselect(label="Select available air pollutant",
+                                           options=common_columns,help='Maximum number of air pollutants: 2',max_selections=2)
            
 
         return
@@ -362,49 +364,45 @@ class User_selection:
     def dynamic_groupby_aggregation(self):
         """ Dynamically create a grouped aggregation graph based on user selections.
         Handles one or two gases and multiple locations."""
-        
+        #ngases=len(self.cols)
+        #ncities=len(list(self.dataframes.keys()))
+        #st.write(ncities)
         # Plot the graph
         st.subheader("Aggregated Data Visualization")
         fig = go.Figure()    
         
         single_column = len(self.cols) == 1
         dual_columns = len(self.cols) == 2
+        offsetgroup = 0
         #st.dataframe[self.agg_dataframe['BOLOS']]
-        for location, agg_data in self.agg_dataframe.items():
-            for idx,col in enumerate(self.cols):
+        for idx,col in enumerate(self.cols):
+            for location, agg_data in self.agg_dataframe.items():
                 fig.add_trace(
                     go.Bar(
                         x=agg_data.index,
                         y=agg_data[col],
-                        #mode="lines",
-                        name=f"{location} - {col}",
+                        name=f"{location} - {col}",offsetgroup=str(offsetgroup),
+                        marker=dict(opacity=0.8),
                         yaxis="y" if idx == 0 else "y2"
                     )
-                )    
-        if single_column:
-    # Single column selected
-            fig.update_layout(
-                title=f"Visualization of {self.cols[0]}",
-                xaxis_title=self.timeframe,
-                yaxis_title=self.cols[0],  # Update Y-axis title to the selected gas
-                legend_title="Location",
-                barmode='group'
-            )
-        elif dual_columns:
-            # Two columns selected
-            fig.update_layout(
-                title="Dynamic Aggregation Visualization (Dual Gases)",
-                xaxis_title=self.timeframe,
-                yaxis=dict(title=self.cols[0]),  # Primary Y-axis title
-                yaxis2=dict(
-                    title=self.cols[1],           # Secondary Y-axis title
-                    overlaying="y",
-                    side="right"
-                ),
-                legend_title="Location - Gas",
-                barmode='group'
-            ) 
+                )
+                offsetgroup += 1
+                
+        layout_args = { "barmode": "group",  # Ensures bars are placed side-by-side
+                        "xaxis": {"title": "Date"},
+                        "legend_title": "Location - Gas"}
+        if len(self.cols) == 1:
+            layout_args["yaxis"] = {"title": self.cols[0]}  # Single Y-axis case
+        else:
+            layout_args["yaxis"] = {"title": self.cols[0]}
+            layout_args["yaxis2"] = {
+                     "title": self.cols[1],
+                     "overlaying": "y",  # Overlay on primary y-axis
+                     "side": "right",
+                     "showgrid": False
+                                    }
 
+        fig.update_layout(**layout_args)
         st.plotly_chart(fig, use_container_width=True)
          
     
@@ -461,10 +459,10 @@ class User_selection:
         return None 
 
 
-#conn = st.connection("postgresql",type="sql",
-#                    url=f"postgresql://{st.secrets['connections.postgresql']['username']}:{st.secrets['connections.postgresql']['password']}@{st.secrets['connections.postgresql']['host']}:{st.secrets['connections.postgresql']['port']}/{st.secrets['connections.postgresql']['database']}")
+conn = st.connection("postgresql",type="sql",
+                    url=f"postgresql://{st.secrets['connections.postgresql']['username']}:{st.secrets['connections.postgresql']['password']}@{st.secrets['connections.postgresql']['host']}:{st.secrets['connections.postgresql']['port']}/{st.secrets['connections.postgresql']['database']}")
 
-conn = st.connection("neon",type="sql")
+#conn = st.connection("neon",type="sql")
 region_selector= User_selection('selection_1', region_names_dict, region_dict,prefecture_codenames,suburbs)
 
 st.title("GAS APP")
