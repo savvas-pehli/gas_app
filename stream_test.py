@@ -368,11 +368,11 @@ class User_selection:
         #ncities=len(list(self.dataframes.keys()))
         #st.write(ncities)
         # Plot the graph
-        st.subheader("Aggregated Data Visualization")
+        locations=[name.replace("_"," ")for name in self.prefecture_name][0]
+        #st.markdown("<h2 style='text-align: center; color: grey;'>Big headline</h2>", unsafe_allow_html=True)
+        #st.subheader(f"Aggregated Data Visualization of station {locations}\t")
         fig = go.Figure()    
         
-        single_column = len(self.cols) == 1
-        dual_columns = len(self.cols) == 2
         offsetgroup = 0
         #st.dataframe[self.agg_dataframe['BOLOS']]
         for idx,col in enumerate(self.cols):
@@ -381,20 +381,48 @@ class User_selection:
                     go.Bar(
                         x=agg_data.index,
                         y=agg_data[col],
-                        name=f"{location} - {col}",offsetgroup=str(offsetgroup),
+                        name=f"{location} - {col}",
+                        offsetgroup=str(offsetgroup),
                         marker=dict(opacity=0.8),
                         yaxis="y" if idx == 0 else "y2"
                     )
                 )
                 offsetgroup += 1
-                
         layout_args = { "barmode": "group",  # Ensures bars are placed side-by-side
                         "xaxis": {"title": "Date"},
-                        "legend_title": "Location - Gas"}
+                        "legend_title": "Location - Gas",
+                        "legend": {
+        "x": 1.04,  # Right side (0=left, 1=right)
+        "y": 1,  # Top (0=bottom, 1=top)
+        "xanchor": "left",  # Anchor point for x position
+        "yanchor": "top"},"margin": {
+            "l": 60,
+            "r": 150,  # Dynamic right margin
+            "b": 60,
+            "t": 60,
+            "pad": 4
+        }   # Anchor point for y position
+                        }
         if len(self.cols) == 1:
-            layout_args["yaxis"] = {"title": self.cols[0]}  # Single Y-axis case
+            layout_args["yaxis"] = {"title": self.cols[0]}# Single Y-axis case
+            layout_args["annotations"] = [
+            dict(
+            x=0.5,  # Center the text
+            y=1.20,  # Slightly above the plot
+            xref="paper",
+            yref="paper",
+            text=f"Pollution Levels of station {locations} <br>for {self.cols[0]} gas",
+            showarrow=False,
+            font=dict(size=25),
+            align="center"
+        )
+    ]
+            layout_args["title"] = ''
+            
         else:
+            locations=' , '.join([name.replace("_"," ")for name in self.prefecture_name])
             layout_args["yaxis"] = {"title": self.cols[0]}
+            layout_args["title"]=f"Pollution Levels of stations {locations} for {self.cols[0]}"
             layout_args["yaxis2"] = {
                      "title": self.cols[1],
                      "overlaying": "y",  # Overlay on primary y-axis
@@ -402,7 +430,24 @@ class User_selection:
                      "showgrid": False
                                     }
 
+            layout_args["annotations"] = [
+        dict(
+            x=0.5,  # Center the text
+            y=1.20,  # Slightly above the plot
+            xref="paper",
+            yref="paper",
+            text=f"Pollution Levels of stations {locations} <br>for {self.cols[0]}",
+            showarrow=False,
+            font=dict(size=25),
+            align="center"
+        )
+    ]
+            layout_args["title"] = ''
         fig.update_layout(**layout_args)
+        fig.update_layout( title_automargin=True,  # Forces auto-adjustment
+    autosize=True          # Ensures proper container sizing
+)
+        
         st.plotly_chart(fig, use_container_width=True)
          
     
@@ -414,6 +459,7 @@ class User_selection:
         "January", "February", "March", "April", "May", "June",
         "July", "August", "September", "October", "November", "December"
         ]
+        
         days =['Monday','Tuesday','Wednesday','Thursday','Firday','Saturday','Sunday']
         month_map = {month: index + 1 for index, month in enumerate(months)}
         days_map={day: index + 1 for index, day in enumerate(days)}
@@ -453,16 +499,16 @@ class User_selection:
         start_day_num=days_map[start_day]
         end_day_num=days_map[end_day]
         #Here is the query for the timeframes we want
-        self.day_query=f"""(extract(DOW from "Date") between {start_day_num} and {end_day_num})"""
+        self.day_query=f"""(extract(ISODOW from "Date") between {start_day_num} and {end_day_num})"""
         self.month_query=f"""(extract(Month from "Date") between {start_month_num} and {end_month_num})"""
         self.year_query=f"""(extract(Year from "Date") IN ({self.year_list}))"""
         return None 
 
 
-#conn = st.connection("postgresql",type="sql",
-#                    url=f"postgresql://{st.secrets['connections.postgresql']['username']}:{st.secrets['connections.postgresql']['password']}@{st.secrets['connections.postgresql']['host']}:{st.secrets['connections.postgresql']['port']}/{st.secrets['connections.postgresql']['database']}")
+conn = st.connection("postgresql",type="sql",
+                    url=f"postgresql://{st.secrets['connections.postgresql']['username']}:{st.secrets['connections.postgresql']['password']}@{st.secrets['connections.postgresql']['host']}:{st.secrets['connections.postgresql']['port']}/{st.secrets['connections.postgresql']['database']}")
 
-conn = st.connection("neon",type="sql")
+#conn = st.connection("neon",type="sql")
 region_selector= User_selection('selection_1', region_names_dict, region_dict,prefecture_codenames,suburbs)
 
 st.title("GAS APP")
@@ -482,7 +528,7 @@ if is_query_complete(region_selector.prefecture_name,region_selector.year_list,r
     # Allow column queries and graph rendering
      if column_check(region_selector.cols):
         region_selector.aggregation_method()
-        checker=st.sidebar.checkbox("Show graph",value=False)
+        checker=st.checkbox("Show graph",value=False)
         if checker:
             region_selector.dynamic_groupby_aggregation()
             #region_selector.null_graphs()
