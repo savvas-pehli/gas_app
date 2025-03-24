@@ -505,10 +505,9 @@ class User_selection:
         return None 
 
 
-conn = st.connection("postgresql",type="sql",
-                    url=f"postgresql://{st.secrets['connections.postgresql']['username']}:{st.secrets['connections.postgresql']['password']}@{st.secrets['connections.postgresql']['host']}:{st.secrets['connections.postgresql']['port']}/{st.secrets['connections.postgresql']['database']}")
 
-#conn = st.connection("neon",type="sql")
+
+conn = st.connection("neon",type="sql")
 region_selector= User_selection('selection_1', region_names_dict, region_dict,prefecture_codenames,suburbs)
 
 st.title("GAS APP")
