@@ -16,7 +16,7 @@ def get_prefecture_codenames():
  'KARPENISI': 'KAR', 'KARUOCHORI': 'KAY', 'KOZANI': 'KOZ', 'LAMIA': 'LAM', 'LARISA': 'LAR',
  'LEIBADIA': 'LEI', 'PATRA': 'PAII', 'PTOLEMAIDA': 'PTO', 'CHALKIDA': 'HAL', 'CHANIA': 'CHA','AGIAS_SOFIAS': 'AGS',
  'ARISTOTLE_UNIVERSITY_THESSALONIKI': 'APT', 'KALAMARIA': 'KAL', 'KORDELIO': 'KOD','NEOCHOROUDA': 'NEO','PANORAMA': 'PAO',
- 'SINDOS': 'SIN','AGIA_PARASKEUI': 'AGP', 'ALIARTOS': 'ALI', 'ATHENS': 'ATH','ELEUSINA': 'ELE','GALATSI': 'GAL','GEOPONIKI': 'GEO',
+ 'SINDOS': 'SIN','AGIA_PARASKEUI': 'AGP', 'ALIARTOS': 'ALI', 'ATHENS': 'ATH','ELEUSINA': 'ELE','GALATSI': 'GAL','GEOPONIKH': 'GEO',
  'GOUDI': 'GOU','KOROPI': 'KOR', 'LIOSIA': 'LIO', 'LUKOBRUSI': 'LYK', 'MAROUSI': 'MAR', 'NEA_SMURNI': 'SMY', 'OINOFYTA': 'OIN', 'PATISION': 'PAT',
  'PEIRAIAS': 'BIO', 'PERISTERI': 'PER','THRAKOMAKEDONES': 'THR', 'ZOGRAFOU': 'PAN'}
 #region_names_dict is the dictionray that containts the code name for each region 
@@ -285,6 +285,7 @@ class User_selection:
         """Fetch dataframes based on the selected combinations."""
         required_columns = ["Date", "Hour"]
         selection_columns=','.join([f'"{col}"' for col in required_columns+self.cols])
+        
         try:
 
             if self.prefecture_name and selection_columns:
@@ -372,8 +373,13 @@ class User_selection:
         #st.markdown("<h2 style='text-align: center; color: grey;'>Big headline</h2>", unsafe_allow_html=True)
         #st.subheader(f"Aggregated Data Visualization of station {locations}\t")
         fig = go.Figure()    
-        
+        gas_info_dict={
+         'O3 mug/m^3':'O3 Public level: 180 μg/m3<br>Alarm level: 240 μg/m3<br>Hourly mean values',
+         'NO2 mug/m^3':'NO2 Alarm level: 400 μg/m3<br> Hourly mean values',
+         'SO2 mug/m^3':'SO2 Alarm level: 500 μg/m3<br> Hourly mean values'}
         offsetgroup = 0
+        number_of_gases_for_context=len(list(set(self.cols) & set(gas_info_dict)))
+        gases_for_context=list(set(self.cols) & set(gas_info_dict))
         #st.dataframe[self.agg_dataframe['BOLOS']]
         for idx,col in enumerate(self.cols):
             for location, agg_data in self.agg_dataframe.items():
@@ -417,8 +423,21 @@ class User_selection:
             align="center"
         )
     ]
+            if self.timeframe=='Hour' and number_of_gases_for_context>0:
+                context=dict(x=1,  # Center the text
+            y=0.5,  # Slightly above the plot
+            xref="paper",
+            yref="paper",
+            xshift=150,
+            text=gas_info_dict[gases_for_context[0]],
+            showarrow=False,
+            font=dict(size=12),
+            align="left")
+                layout_args['annotations'].append(context)
+                
             layout_args["title"] = ''
-            
+
+
         else:
             locations=' , '.join([name.replace("_"," ")for name in self.prefecture_name])
             layout_args["yaxis"] = {"title": self.cols[0]}
@@ -440,14 +459,38 @@ class User_selection:
             showarrow=False,
             font=dict(size=25),
             align="center"
-        )
-    ]
+        )]
+            if self.timeframe=='Hour' and number_of_gases_for_context>0:
+                if number_of_gases_for_context<2:
+                    context=dict(x=1,  # Center the text
+            y=0.5,  # Slightly above the plot
+            xref="paper",
+            yref="paper",
+            xshift=230,
+            text=gas_info_dict[gases_for_context[0]],
+            showarrow=False,
+            font=dict(size=12),
+            align="left")
+                elif number_of_gases_for_context>1:
+                    context=dict(x=1,  # Center the text
+            y=0.5,  # Slightly above the plot
+            xref="paper",
+            yref="paper",
+            xshift=230,
+            text=gas_info_dict[gases_for_context[0]]+'<br><br>'+gas_info_dict[gases_for_context[1]],
+            showarrow=False,
+            font=dict(size=12),
+            align="left")
+                layout_args['annotations'].append(context)
+                    
+                    
+    
             layout_args["title"] = ''
         fig.update_layout(**layout_args)
         fig.update_layout( title_automargin=True,  # Forces auto-adjustment
     autosize=True          # Ensures proper container sizing
 )
-        
+        #fig.add_annotation(text='adasddadsasd <br> asdas',align='left',showarrow=False,xref='paper',yref='paper',x=1,borderwidth=1,bordercolor='white')
         st.plotly_chart(fig, use_container_width=True)
          
     
@@ -505,9 +548,10 @@ class User_selection:
         return None 
 
 
+conn = st.connection("postgresql",type="sql",
+                    url=f"postgresql://{st.secrets['connections.postgresql']['username']}:{st.secrets['connections.postgresql']['password']}@{st.secrets['connections.postgresql']['host']}:{st.secrets['connections.postgresql']['port']}/{st.secrets['connections.postgresql']['database']}")
 
-
-conn = st.connection("neon",type="sql")
+#conn = st.connection("neon",type="sql")
 region_selector= User_selection('selection_1', region_names_dict, region_dict,prefecture_codenames,suburbs)
 
 st.title("GAS APP")
@@ -533,6 +577,7 @@ if is_query_complete(region_selector.prefecture_name,region_selector.year_list,r
             #region_selector.null_graphs()
      else:
         st.info('Please select at least one 1 air pollutant')
+st.write(region_selector.timeframe)
 
 
 
