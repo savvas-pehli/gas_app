@@ -576,7 +576,7 @@ if is_query_complete(region_selector.prefecture_name,region_selector.year_list,r
             #region_selector.null_graphs()
      else:
         st.info('Please select at least one 1 air pollutant')
-st.write(region_selector.timeframe)
+
 
 
 
