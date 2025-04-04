@@ -424,6 +424,7 @@ class User_selection:
         )
     ]
             if self.timeframe=='Hour' and number_of_gases_for_context>0:
+                st.write('sdas')
                 context=dict(x=1,  # Center the text
             y=0.5,  # Slightly above the plot
             xref="paper",
