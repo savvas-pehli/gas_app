@@ -374,7 +374,7 @@ class User_selection:
         #st.subheader(f"Aggregated Data Visualization of station {locations}\t")
         fig = go.Figure()    
         gas_info_dict={
-         'O3 mug/m^3':'O3 Public level: 180 μg/m3Alarm level: 240 μg/m3Hourly mean values',
+         'O3 mug/m^3':'O3 Public level: 180 μg/m3<br>Alarm level: 240 μg/m3<br>Hourly mean values',
          'NO2 mug/m^3':'NO2 Alarm level: 400 μg/m3<br> Hourly mean values',
          'SO2 mug/m^3':'SO2 Alarm level: 500 μg/m3<br> Hourly mean values'}
         offsetgroup = 0
